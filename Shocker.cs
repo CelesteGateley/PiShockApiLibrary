@@ -42,7 +42,7 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
     /// </exception>
     public async Task Shock(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
-        await ActivateV3(0, duration, intensity, minimumDuration, minimumIntensity);
+        await Activate(0, duration, intensity, minimumDuration, minimumIntensity);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
     /// </exception>
     public async Task Vibrate(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
-        await ActivateV3(1, duration, intensity, minimumDuration, minimumIntensity);
+        await Activate(1, duration, intensity, minimumDuration, minimumIntensity);
     }
 
     /// <summary>
@@ -100,10 +100,11 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
     /// </exception>
     public async Task Beep(double duration, double? minimumDuration = null)
     {
-        await ActivateV3(2, duration, 0, minimumDuration, 0);
+        await Activate(2, duration, 0, minimumDuration, 0);
     }
+    
 
-    private async Task ActivateV3(int mode, double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
+    private async Task Activate(int mode, double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
         minimumDuration ??= duration;
         minimumIntensity ??= intensity;
@@ -117,10 +118,10 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
         request.Content = JsonContent.Create(new ShockerRequestData(mode, duration, intensity, agent, minimumDuration, minimumIntensity, useIntensityAsPercentage));
         request.Headers.Add("X-Pishock-Api-Key", apiKey);
         
-        await ValidateV3Response(await Client.SendAsync(request));
+        await ValidateResponse(await Client.SendAsync(request));
     }
 
-    private async Task ValidateV3Response(HttpResponseMessage response)
+    private async Task ValidateResponse(HttpResponseMessage response)
     {
         if (response.IsSuccessStatusCode) return;
 

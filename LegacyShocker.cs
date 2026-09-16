@@ -181,7 +181,7 @@ public class LegacyShocker : IShocker
                 throw new PishockAuthenticationException("You do not have permission to operate this shocker using those credentials");
             case "This code doesn't exist.":
                 throw new PishockShockerException($"Share code {_shareCode} does not exist.");
-            case var s when s.StartsWith("Intensity must be between 0 and"):
+            case not null when content.StartsWith("Intensity must be between 0 and"):
                 throw new PishockDataException($"Intensity out of range, please refresh the internal shocker. ({content})");
             default:
                 throw new PishockException($"An unknown error has occurred. ({content})");

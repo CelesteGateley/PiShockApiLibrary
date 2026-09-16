@@ -9,8 +9,9 @@ namespace PiShockApiLibrary;
 /// </summary>
 /// <param name="apiKey">The PiShock API key used to authenticate requests.</param>
 /// <param name="shockerId">The ID of the target shocker.</param>
+/// <param name="useIntensityAsPercentage">Should intensity be a percentage of maximum, rather than a raw value (default = true)</param>
 /// <param name="agent">Name reported to the PiShock API as the calling application.</param>
-public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock Api")
+public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercentage = true, string agent = "C# PiShock Api")
 {
     private static readonly HttpClient Client = new();
 
@@ -19,6 +20,8 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
     /// </summary>
     /// <param name="duration">Duration in seconds. Must be between 0.3 and 15.</param>
     /// <param name="intensity">Intensity of the shock. Must be between 0 and 100.</param>
+    /// <param name="minimumDuration">(Optional) If randomizing the duration, set this to the lower bounds</param>
+    /// <param name="minimumIntensity">(Optional) If randomizing the intensity, set this to the lower bounds</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="duration"/> or <paramref name="intensity"/> is outside its valid range.
     /// </exception>
@@ -37,9 +40,9 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
     /// <exception cref="PishockException">
     /// Thrown for any other unrecognized error response from the PiShock API.
     /// </exception>
-    public async Task Shock(float duration, int intensity)
+    public async Task Shock(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
-        await ActivateV3(0, duration, intensity);
+        await ActivateV3(0, duration, intensity, minimumDuration, minimumIntensity);
     }
 
     /// <summary>
@@ -47,6 +50,8 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
     /// </summary>
     /// <param name="duration">Duration in seconds. Must be between 0.3 and 15.</param>
     /// <param name="intensity">Intensity of the vibration. Must be between 0 and 100.</param>
+    /// <param name="minimumDuration">(Optional) If randomizing the duration, set this to the lower bounds</param>
+    /// <param name="minimumIntensity">(Optional) If randomizing the intensity, set this to the lower bounds</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="duration"/> or <paramref name="intensity"/> is outside its valid range.
     /// </exception>
@@ -65,15 +70,16 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
     /// <exception cref="PishockException">
     /// Thrown for any other unrecognized error response from the PiShock API.
     /// </exception>
-    public async Task Vibrate(float duration, int intensity)
+    public async Task Vibrate(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
-        await ActivateV3(1, duration, intensity);
+        await ActivateV3(1, duration, intensity, minimumDuration, minimumIntensity);
     }
 
     /// <summary>
     /// Activates the shocker to beep.
     /// </summary>
     /// <param name="duration">Duration in seconds. Must be between 0.3 and 15.</param>
+    /// <param name="minimumDuration">(Optional) If randomizing the duration, set this to the lower bounds</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="duration"/> is outside its valid range.
     /// </exception>
@@ -92,19 +98,23 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
     /// <exception cref="PishockException">
     /// Thrown for any other unrecognized error response from the PiShock API.
     /// </exception>
-    public async Task Beep(float duration)
+    public async Task Beep(double duration, double? minimumDuration = null)
     {
-        await ActivateV3(2, duration, 0);
+        await ActivateV3(2, duration, 0, minimumDuration, 0);
     }
 
-    private async Task ActivateV3(int mode, double duration, int intensity)
+    private async Task ActivateV3(int mode, double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
+        minimumDuration ??= duration;
+        minimumIntensity ??= intensity;
         if (mode is < 0 or > 2) { throw new ArgumentOutOfRangeException(nameof(mode), mode, "Mode must be either 0 (Shock), 1 (Vibrate) or 2 (Beep)"); }
-        if (duration is < 0.3 or > 15) { throw new ArgumentOutOfRangeException(nameof(duration), duration, "Duration must be between 0.3 seconds and 15 seconds."); }
-        if (intensity is < 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(intensity), intensity, "Intensity must be between 0 and 100."); }
+        if (duration < minimumDuration) { throw new ArgumentOutOfRangeException(nameof(minimumDuration), minimumDuration, "Minimum duration must be less than or equal to duration."); }
+        if (intensity < minimumIntensity) { throw new ArgumentOutOfRangeException(nameof(minimumIntensity), minimumIntensity, "Minimum intensity must be less than or equal to intensity."); }
+        if (duration is < 0.3 or > 15 || minimumDuration is < 0.3 or > 15) { throw new ArgumentOutOfRangeException(nameof(duration), duration, "Duration must be between 0.3 seconds and 15 seconds."); }
+        if (intensity is < 0 or > 100 || minimumIntensity is < 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(intensity), intensity, "Intensity must be between 0 and 100."); }
         
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.pishock.com/Shockers/" + shockerId);
-        request.Content = JsonContent.Create(new ShockerRequestData(mode, duration, intensity, agent));
+        request.Content = JsonContent.Create(new ShockerRequestData(mode, duration, intensity, agent, minimumDuration, minimumIntensity, useIntensityAsPercentage));
         request.Headers.Add("X-Pishock-Api-Key", apiKey);
         
         await ValidateV3Response(await Client.SendAsync(request));
@@ -154,11 +164,14 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
         }
     }
 
-    private class ShockerRequestData(int mode, double duration, int intensity, string agent)
+    private class ShockerRequestData(int mode, double duration, int intensity, string agent, double? minimumDuration = null, int? minimumIntensity = null, bool intensityAsPercentage = true)
     {
         [JsonPropertyName("Operation")] public int Operation { get; } = mode;                                                                                                                                                                   
         [JsonPropertyName("Duration")] public int Duration { get; } = (int)Math.Floor(duration * 1000);                                                                                                                                         
-        [JsonPropertyName("Intensity")] public int Intensity { get; } = intensity;                                                                                                                                                              
+        [JsonPropertyName("Intensity")] public int Intensity { get; } = intensity;                                                                                                                                                                      
+        [JsonPropertyName("MinimumDuration")] public int MinimumDuration { get; } = (int)Math.Floor((minimumDuration ?? duration) * 1000);                                                                                                                                         
+        [JsonPropertyName("MinimumIntensity")] public int MinimumIntensity { get; } = minimumIntensity ?? intensity;                                                                                                                                                              
         [JsonPropertyName("AgentName")] public string AgentName { get; } = agent;
+        [JsonPropertyName("IntensityAsPercentage")] public bool IntensityAsPercentage { get; } = intensityAsPercentage;
     }
 }

@@ -16,6 +16,6 @@ public static class Program
         Console.WriteLine("ShockerId: " + shockerId);
         
         var shocker = new Shocker(apiKey, shockerId);
-        await shocker.Vibrate(1, 100);
+        await shocker.Vibrate(5, 5, 1, 1);
     }
 }

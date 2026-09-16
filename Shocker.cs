@@ -107,38 +107,41 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
         request.Content = JsonContent.Create(new ShockerRequestData(mode, duration, intensity, agent));
         request.Headers.Add("X-Pishock-Api-Key", apiKey);
         
-        ValidateV3Response(await Client.SendAsync(request));
+        await ValidateV3Response(await Client.SendAsync(request));
     }
 
-    private void ValidateV3Response(HttpResponseMessage response)
+    private async Task ValidateV3Response(HttpResponseMessage response)
     {
         Console.WriteLine(response);
         if (response.IsSuccessStatusCode) return;
 
+        var content = await response.Content.ReadAsStringAsync();
+        content = "Code: " + (int)response.StatusCode + " " + response.StatusCode + ", Body: " + content;
+        
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (response.StatusCode)
         {
             // Bad API Key errors
             case HttpStatusCode.Unauthorized:
-                throw new PishockAuthenticationException($"Invalid/missing API key. ({response.Content})");
+                throw new PishockAuthenticationException($"Invalid/missing API key. ({content})");
             case HttpStatusCode.Forbidden:
-                throw new PishockAuthenticationException($"API Key does not have permission to perform action. ({response.Content})");
+                throw new PishockAuthenticationException($"API Key does not have permission to perform action. ({content})");
                 
             // PiShock Permissions Error (Shocker Not found/available etc)
             case HttpStatusCode.MethodNotAllowed:
-                throw new PishockPermissionException($"Cannot use requested mode with this shocker. ({response.Content})");
+                throw new PishockPermissionException($"Cannot use requested mode with this shocker. ({content})");
             case HttpStatusCode.NotFound:
-                throw new PishockPermissionException($"Requested shocker could not be found. ({response.Content})");
+                throw new PishockPermissionException($"Requested shocker could not be found. ({content})");
             case HttpStatusCode.Gone:
-                throw new PishockPermissionException($"Requested share is locked. ({response.Content})");
+                throw new PishockPermissionException($"Requested share is locked. ({content})");
             case HttpStatusCode.ServiceUnavailable:
-                throw new PishockPermissionException($"Requested shocker {shockerId} is currently paused. ({response.Content})");
+                throw new PishockPermissionException($"Requested shocker {shockerId} is currently paused. ({content})");
                 
             // Bad data passed to API
             case HttpStatusCode.PreconditionFailed:
-                throw new PishockDataException($"Intensity was outside acceptable range. ({response.Content})");
+                throw new PishockDataException($"Intensity was outside acceptable range. ({content})");
             case HttpStatusCode.RequestedRangeNotSatisfiable:
-                throw new PishockDataException($"Duration was outside acceptable range. ({response.Content})");
+                throw new PishockDataException($"Duration was outside acceptable range. ({content})");
                 
             // PiShock does not support V3
             case HttpStatusCode.NotAcceptable:
@@ -147,7 +150,7 @@ public class Shocker(string apiKey, string shockerId, string agent = "C# PiShock
             // Fallback
             case HttpStatusCode.InternalServerError:
             default:
-                throw new PishockException($"An error occured with the PiShock API. ({response.Content})");
+                throw new PishockException($"An error occured with the PiShock API. ({content})");
         }
     }
 

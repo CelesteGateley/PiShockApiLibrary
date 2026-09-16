@@ -108,10 +108,10 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
         minimumDuration ??= duration;
         minimumIntensity ??= intensity;
         if (mode is < 0 or > 2) { throw new ArgumentOutOfRangeException(nameof(mode), mode, "Mode must be either 0 (Shock), 1 (Vibrate) or 2 (Beep)"); }
-        if (duration < minimumDuration) { throw new ArgumentOutOfRangeException(nameof(minimumDuration), minimumDuration, "Minimum duration must be less than or equal to duration."); }
-        if (intensity < minimumIntensity) { throw new ArgumentOutOfRangeException(nameof(minimumIntensity), minimumIntensity, "Minimum intensity must be less than or equal to intensity."); }
         if (duration is < 0.3 or > 15 || minimumDuration is < 0.3 or > 15) { throw new ArgumentOutOfRangeException(nameof(duration), duration, "Duration must be between 0.3 seconds and 15 seconds."); }
         if (intensity is < 0 or > 100 || minimumIntensity is < 0 or > 100) { throw new ArgumentOutOfRangeException(nameof(intensity), intensity, "Intensity must be between 0 and 100."); }
+        if (duration < minimumDuration) { throw new ArgumentOutOfRangeException(nameof(minimumDuration), minimumDuration, "Minimum duration must be less than or equal to duration."); }
+        if (intensity < minimumIntensity) { throw new ArgumentOutOfRangeException(nameof(minimumIntensity), minimumIntensity, "Minimum intensity must be less than or equal to intensity."); }
         
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.pishock.com/Shockers/" + shockerId);
         request.Content = JsonContent.Create(new ShockerRequestData(mode, duration, intensity, agent, minimumDuration, minimumIntensity, useIntensityAsPercentage));

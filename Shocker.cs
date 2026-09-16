@@ -122,7 +122,6 @@ public class Shocker(string apiKey, string shockerId, bool useIntensityAsPercent
 
     private async Task ValidateV3Response(HttpResponseMessage response)
     {
-        Console.WriteLine(response);
         if (response.IsSuccessStatusCode) return;
 
         var content = await response.Content.ReadAsStringAsync();

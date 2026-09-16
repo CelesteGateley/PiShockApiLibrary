@@ -1,6 +1,6 @@
 # PiShockApiLibrary
 
-A small C# library for controlling [PiShock](https://pishock.com) shockers, targeting .NET 10. It talks to both the current V3 API and the legacy API, and picks whichever one a given shocker actually supports.
+A small C# library for controlling [PiShock](https://pishock.com) shockers, targeting .NET 10 and .NET Standard 2.0 (for compatibility with .NET Framework 4.7.2+ and older runtimes, e.g. Unity/BepInEx mods). It talks to both the current V3 API and the legacy API, and picks whichever one a given shocker actually supports.
 
 ## Installation
 

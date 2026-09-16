@@ -32,6 +32,26 @@ public class LegacyShocker : IShocker
         _agent = agent;
     }
 
+    /// <summary>
+    /// Creates a <see cref="LegacyShocker"/>, resolving a share code (and its capabilities/limits) from the given <paramref name="shockerId"/>
+    /// and/or <paramref name="shareCode"/> via the legacy API's resolution chain.
+    /// </summary>
+    /// <param name="apiKey">The PiShock API key used to authenticate requests.</param>
+    /// <param name="username">The PiShock account username that owns the API key.</param>
+    /// <param name="shockerId">(Optional) The ID of the target shocker. At least one of <paramref name="shockerId"/> or <paramref name="shareCode"/> is required.</param>
+    /// <param name="shareCode">(Optional) An exact share code to use directly. At least one of <paramref name="shockerId"/> or <paramref name="shareCode"/> is required.</param>
+    /// <param name="intensityAsPercentage">Should intensity be a percentage of the share's maximum, rather than a raw value (default = true)</param>
+    /// <param name="agent">Name reported to the PiShock API as the calling application.</param>
+    /// <param name="strict">
+    /// When <c>true</c>, throw <see cref="PishockNotSupportedException"/> instead of silently approximating requests the legacy API can't fully honor
+    /// (a randomized duration, or an ambiguous share code with no explicit <paramref name="shareCode"/> given). Default <c>false</c> = "close enough is good enough".
+    /// </param>
+    /// <returns>A <see cref="LegacyShocker"/> ready to send shock/vibrate/beep commands.</returns>
+    /// <exception cref="PishockAuthenticationException">Thrown when the API key or username is invalid.</exception>
+    /// <exception cref="PishockDataException">Thrown when neither <paramref name="shockerId"/> nor <paramref name="shareCode"/> is supplied, or the user has no share codes.</exception>
+    /// <exception cref="PishockShockerException">Thrown when no share matches the given <paramref name="shockerId"/>/<paramref name="shareCode"/>.</exception>
+    /// <exception cref="PishockPermissionException">Thrown when every matching share is currently paused.</exception>
+    /// <exception cref="PishockNotSupportedException">Thrown in <paramref name="strict"/> mode when the share code is ambiguous.</exception>
     public static async Task<LegacyShocker> GetShocker(string apiKey, string username, string? shockerId = null, string? shareCode = null, bool intensityAsPercentage = true, string agent = "C# PiShock Api", bool strict = false)
     {
         var shocker = new LegacyShocker(apiKey, username, shockerId, shareCode, intensityAsPercentage, agent, strict);
@@ -39,6 +59,23 @@ public class LegacyShocker : IShocker
         return shocker;
     }
     
+    /// <summary>
+    /// Activates the shocker to deliver a shock.
+    /// </summary>
+    /// <param name="duration">Duration in seconds. Must be between 0.3 and 15 seconds.</param>
+    /// <param name="intensity">Intensity of the shock. Must be between 0 and 100, or the maximum set for the share.</param>
+    /// <param name="minimumDuration">
+    /// (Optional) Ignored by the legacy API — duration is never randomized server-side. Only checked in <c>strict</c> mode, where
+    /// setting it to anything other than <paramref name="duration"/> throws <see cref="PishockNotSupportedException"/>.
+    /// </param>
+    /// <param name="minimumIntensity">(Optional) If randomizing the intensity, set this to the lower bounds.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="duration"/> or <paramref name="intensity"/> is outside its valid range.</exception>
+    /// <exception cref="PishockPermissionException">Thrown when this share code does not have permission to shock.</exception>
+    /// <exception cref="PishockNotSupportedException">Thrown in <c>strict</c> mode when <paramref name="minimumDuration"/> differs from <paramref name="duration"/>.</exception>
+    /// <exception cref="PishockAuthenticationException">Thrown when the API key or username is invalid.</exception>
+    /// <exception cref="PishockShockerException">Thrown when the share code no longer exists.</exception>
+    /// <exception cref="PishockDataException">Thrown when the intensity is rejected as out of range by the API itself.</exception>
+    /// <exception cref="PishockException">Thrown for any other unrecognized response from the PiShock API.</exception>
     public async Task Shock(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
         if (!_canShock)
@@ -48,6 +85,23 @@ public class LegacyShocker : IShocker
         await Activate(0, duration, intensity, minimumDuration, minimumIntensity);
     }
 
+    /// <summary>
+    /// Activates the shocker to vibrate.
+    /// </summary>
+    /// <param name="duration">Duration in seconds. Must be between 0.3 and 15 seconds.</param>
+    /// <param name="intensity">Intensity of the vibration. Must be between 0 and 100, or the maximum set for the share.</param>
+    /// <param name="minimumDuration">
+    /// (Optional) Ignored by the legacy API — duration is never randomized server-side. Only checked in <c>strict</c> mode, where
+    /// setting it to anything other than <paramref name="duration"/> throws <see cref="PishockNotSupportedException"/>.
+    /// </param>
+    /// <param name="minimumIntensity">(Optional) If randomizing the intensity, set this to the lower bounds.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="duration"/> or <paramref name="intensity"/> is outside its valid range.</exception>
+    /// <exception cref="PishockPermissionException">Thrown when this share code does not have permission to vibrate.</exception>
+    /// <exception cref="PishockNotSupportedException">Thrown in <c>strict</c> mode when <paramref name="minimumDuration"/> differs from <paramref name="duration"/>.</exception>
+    /// <exception cref="PishockAuthenticationException">Thrown when the API key or username is invalid.</exception>
+    /// <exception cref="PishockShockerException">Thrown when the share code no longer exists.</exception>
+    /// <exception cref="PishockDataException">Thrown when the intensity is rejected as out of range by the API itself.</exception>
+    /// <exception cref="PishockException">Thrown for any other unrecognized response from the PiShock API.</exception>
     public async Task Vibrate(double duration, int intensity, double? minimumDuration = null, int? minimumIntensity = null)
     {
         if (!_canVibrate)
@@ -57,6 +111,20 @@ public class LegacyShocker : IShocker
         await Activate(1, duration, intensity, minimumDuration, minimumIntensity);
     }
 
+    /// <summary>
+    /// Activates the shocker to beep.
+    /// </summary>
+    /// <param name="duration">Duration in seconds. Must be between 0.3 and 15 seconds.</param>
+    /// <param name="minimumDuration">
+    /// (Optional) Ignored by the legacy API — duration is never randomized server-side. Only checked in <c>strict</c> mode, where
+    /// setting it to anything other than <paramref name="duration"/> throws <see cref="PishockNotSupportedException"/>.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="duration"/> is outside its valid range.</exception>
+    /// <exception cref="PishockPermissionException">Thrown when this share code does not have permission to beep.</exception>
+    /// <exception cref="PishockNotSupportedException">Thrown in <c>strict</c> mode when <paramref name="minimumDuration"/> differs from <paramref name="duration"/>.</exception>
+    /// <exception cref="PishockAuthenticationException">Thrown when the API key or username is invalid.</exception>
+    /// <exception cref="PishockShockerException">Thrown when the share code no longer exists.</exception>
+    /// <exception cref="PishockException">Thrown for any other unrecognized response from the PiShock API.</exception>
     public async Task Beep(double duration, double? minimumDuration = null)
     {
         if (!_canBeep)
@@ -66,6 +134,16 @@ public class LegacyShocker : IShocker
         await Activate(2, duration, 0, minimumDuration);
     }
 
+    /// <summary>
+    /// Re-runs the legacy resolution chain (<see cref="GetUserId"/> → <see cref="GetShareCodeIds"/> → <see cref="GetShareInfo"/> → <see cref="GetShareCode"/>)
+    /// and updates this instance's share code and cached capabilities/limits in place. Unlike <see cref="V3Shocker"/>, this is not a no-op: legacy's
+    /// <c>Operate</c> endpoint doesn't validate duration server-side and capability data (e.g. <c>maxIntensity</c>) can drift after construction.
+    /// </summary>
+    /// <exception cref="PishockAuthenticationException">Thrown when the API key or username is invalid.</exception>
+    /// <exception cref="PishockDataException">Thrown when the user has no share codes.</exception>
+    /// <exception cref="PishockShockerException">Thrown when no share matches this instance's shocker ID/share code.</exception>
+    /// <exception cref="PishockPermissionException">Thrown when every matching share is currently paused.</exception>
+    /// <exception cref="PishockNotSupportedException">Thrown in <c>strict</c> mode when the share code is ambiguous.</exception>
     public async Task Refresh()
     {
         var userId = await GetUserId();

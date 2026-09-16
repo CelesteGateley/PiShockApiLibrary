@@ -155,9 +155,13 @@ public class V3Shocker : IShocker
         await Activate(2, duration, 0, minimumDuration, 0);
     }
 
+    /// <summary>
+    /// No-op for <see cref="V3Shocker"/>. Every <see cref="Shock"/>/<see cref="Vibrate"/>/<see cref="Beep"/> call is validated
+    /// server-side via status codes, so a stale locally-cached limit can only cause an overly-strict client-side rejection,
+    /// never an incorrect request being sent — there's nothing to re-fetch. Present to satisfy <see cref="IShocker"/>.
+    /// </summary>
     public Task Refresh()
     {
-        // Realistic No-Op. Everything is validated properly locally, so cannot
         return Task.CompletedTask;
     }
 

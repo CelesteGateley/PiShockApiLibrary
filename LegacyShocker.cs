@@ -19,8 +19,9 @@ public class LegacyShocker : IShocker
     private bool _canShock = true;
     private bool _canVibrate = true;
     private bool _canBeep = true;
+    private readonly string _agent;
 
-    private LegacyShocker(string apiKey, string username, string? shockerId = null, string? shareCode = null, bool intensityAsPercentage = true, bool strict = false)
+    private LegacyShocker(string apiKey, string username, string? shockerId = null, string? shareCode = null, bool intensityAsPercentage = true, string agent = "C# PiShock Api", bool strict = false)
     {
         _apiKey = apiKey;
         _username = username;
@@ -28,11 +29,12 @@ public class LegacyShocker : IShocker
         _shareCode = shareCode;
         _intensityAsPercentage = intensityAsPercentage;
         _strict = strict;
+        _agent = agent;
     }
 
-    public static async Task<LegacyShocker> GetShocker(string apiKey, string username, string? shockerId = null, bool intensityAsPercentage = true, string? shareCode = null, bool strict = false)
+    public static async Task<LegacyShocker> GetShocker(string apiKey, string username, string? shockerId = null, string? shareCode = null, bool intensityAsPercentage = true, string agent = "C# PiShock Api", bool strict = false)
     {
-        var shocker = new LegacyShocker(apiKey, username, shockerId, shareCode, intensityAsPercentage, strict);
+        var shocker = new LegacyShocker(apiKey, username, shockerId, shareCode, intensityAsPercentage, agent, strict);
         await shocker.Refresh();
         return shocker;
     }
@@ -89,7 +91,7 @@ public class LegacyShocker : IShocker
         var randomize = !(minimumIntensity == null || minimumIntensity == intensity);
         
         var request = new HttpRequestMessage(HttpMethod.Post, "https://ps.pishock.com/PiShock/Operate");
-        request.Content = JsonContent.Create(new OperateRequest(_apiKey, _username, _shareCode, mode, duration, intensity, "", randomize, _intensityAsPercentage));
+        request.Content = JsonContent.Create(new OperateRequest(_apiKey, _username, _shareCode, mode, duration, intensity, _agent, randomize, _intensityAsPercentage));
         var response = await Client.SendAsync(request);
         var content = await response.Content.ReadAsStringAsync();
 

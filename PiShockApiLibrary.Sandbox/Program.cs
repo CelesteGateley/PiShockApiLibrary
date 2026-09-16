@@ -9,13 +9,13 @@ public static class Program
             Console.WriteLine("Usage: {api_key} {shocker_id}");
             return;
         }
-        string apiKey = args[0];
-        string shockerId = args[1];
+        var apiKey = args[0];
+        var shockerId = args[1];
         
         Console.WriteLine("Api Key: " + apiKey);
         Console.WriteLine("ShockerId: " + shockerId);
         
-        var shocker = new Shocker(apiKey, shockerId);
+        var shocker = await Shocker.CreateShocker(apiKey, shockerId);
         await shocker.Vibrate(5, 5, 1, 1);
     }
 }

@@ -15,7 +15,8 @@ public static class Program
         Console.WriteLine("Api Key: " + apiKey);
         Console.WriteLine("ShockerId: " + shockerId);
         
-        var shocker = await Shocker.CreateShocker(apiKey, shockerId);
-        await shocker.Vibrate(5, 5, 1, 1);
+        var shocker = await ShockerFactory.CreateShocker(apiKey, shockerId);
+        await shocker.Vibrate(2, 5, 1, 1);
+        await shocker.Beep(2, 1);
     }
 }

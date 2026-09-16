@@ -7,7 +7,7 @@ namespace PiShockApiLibrary;
 /// <summary>
 /// Represents a single PiShock shocker device for sending shock/vibrate/beep commands via the V3 API.
 /// </summary>
-public class Shocker
+public class V3Shocker : IShocker
 {
     private static readonly HttpClient Client = new();
     private double _maxDuration = 15;
@@ -20,7 +20,7 @@ public class Shocker
     private readonly bool _useIntensityAsPercentage;
     private readonly string _agent;
 
-    private Shocker(string apiKey, string shockerId, bool useIntensityAsPercentage = true, string agent = "C# PiShock Api")
+    private V3Shocker(string apiKey, string shockerId, bool useIntensityAsPercentage = true, string agent = "C# PiShock Api")
     {
         _apiKey = apiKey;
         _shockerId = shockerId;
@@ -29,13 +29,13 @@ public class Shocker
     }
 
     /// <summary>
-    /// Creates a <see cref="Shocker"/> for the given shocker ID, fetching its capabilities and limits from the API.
+    /// Creates a <see cref="V3Shocker"/> for the given shocker ID, fetching its capabilities and limits from the API.
     /// </summary>
     /// <param name="apiKey">The PiShock API key used to authenticate requests.</param>
     /// <param name="shockerId">The ID of the target shocker.</param>
     /// <param name="useIntensityAsPercentage">Should intensity be a percentage of maximum, rather than a raw value (default = true)</param>
     /// <param name="agent">Name reported to the PiShock API as the calling application.</param>
-    /// <returns>A <see cref="Shocker"/> ready to send shock/vibrate/beep commands.</returns>
+    /// <returns>A <see cref="V3Shocker"/> ready to send shock/vibrate/beep commands.</returns>
     /// <exception cref="PishockAuthenticationException">
     /// Thrown when the API key is invalid/missing or lacks permission to perform the action.
     /// </exception>
@@ -48,9 +48,9 @@ public class Shocker
     /// <exception cref="PishockException">
     /// Thrown for any other unrecognized error response from the PiShock API.
     /// </exception>
-    public static async Task<Shocker> CreateShocker(string apiKey, string shockerId, bool useIntensityAsPercentage = true, string agent = "C# PiShock Api")
+    public static async Task<V3Shocker> CreateShocker(string apiKey, string shockerId, bool useIntensityAsPercentage = true, string agent = "C# PiShock Api")
     {
-        var shocker = new Shocker(apiKey, shockerId, useIntensityAsPercentage, agent);
+        var shocker = new V3Shocker(apiKey, shockerId, useIntensityAsPercentage, agent);
         await shocker.InitializeShockerDetails();
         return shocker;
     }

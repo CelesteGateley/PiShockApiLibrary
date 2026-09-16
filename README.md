@@ -50,3 +50,7 @@ Out-of-range `duration`/`intensity` arguments throw `ArgumentOutOfRangeException
 - **Legacy API's `Operate` endpoint doesn't validate duration/intensity server-side**, so a `LegacyShocker`'s cached limits can drift; call `Refresh()` periodically if a share's limits might have changed. `V3Shocker.Refresh()` is a no-op — every V3 call is validated server-side anyway.
 - **Ambiguous legacy share codes** (multiple shares matching the same shocker ID) resolve to the first match by default. Pass an explicit `shareCode`, or set `strict: true` to throw instead of guessing.
 - Each `IShocker` implementation uses a single static, shared `HttpClient` — it's not injectable, which makes this harder to unit test or route through a custom handler.
+
+## License
+
+[MIT](LICENSE)

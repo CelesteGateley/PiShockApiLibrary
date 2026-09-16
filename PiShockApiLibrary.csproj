@@ -6,8 +6,24 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <PackageId>PiShockApiLibrary</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Celeste Gateley</Authors>
+        <Description>A C# client for the PiShock API, supporting both the V3 and legacy APIs with automatic fallback.</Description>
+        <PackageTags>pishock;shocker</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/CelesteGateley/PiShockApiLibrary</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
     <ItemGroup>
         <Compile Remove="PiShockApiLibrary.Sandbox\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>

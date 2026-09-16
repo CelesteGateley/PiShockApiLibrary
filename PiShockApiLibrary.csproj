@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -20,6 +21,13 @@
 
     <ItemGroup>
         <Compile Remove="PiShockApiLibrary.Sandbox\**" />
+        <Compile Remove="Polyfills\**" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="System.Text.Json" Version="9.0.0" />
+        <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+        <Compile Include="Polyfills\IsExternalInit.cs" />
     </ItemGroup>
 
     <ItemGroup>

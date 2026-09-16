@@ -4,7 +4,11 @@ A small C# library for controlling [PiShock](https://pishock.com) shockers, targ
 
 ## Installation
 
-Not published as a NuGet package yet. Reference the project directly, either as a git submodule or by copying it into your solution and adding a project reference to `PiShockApiLibrary.csproj`.
+Available on [NuGet](https://www.nuget.org/packages/PiShockApiLibrary/):
+
+```
+dotnet add package PiShockApiLibrary
+```
 
 ## Usage
 
@@ -44,7 +48,6 @@ Out-of-range `duration`/`intensity` arguments throw `ArgumentOutOfRangeException
 
 ## Limitations
 
-- **No NuGet package.** Source/project reference only, for now.
 - **No `CancellationToken` support.** Calls can't currently be cancelled mid-flight.
 - **Legacy API can't randomize duration server-side.** Passing `minimumDuration` to `Shock`/`Vibrate`/`Beep` on a `LegacyShocker` is silently ignored unless `strict` mode is set, in which case it throws instead.
 - **Legacy API's `Operate` endpoint doesn't validate duration/intensity server-side**, so a `LegacyShocker`'s cached limits can drift; call `Refresh()` periodically if a share's limits might have changed. `V3Shocker.Refresh()` is a no-op — every V3 call is validated server-side anyway.

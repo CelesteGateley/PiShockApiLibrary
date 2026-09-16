@@ -34,3 +34,10 @@ public class PishockShockerException : PishockException
     public PishockShockerException(string message) : base(message) { }
     public PishockShockerException(string message, Exception innerException) : base(message, innerException) { }
 }
+
+public class PishockNotSupportedException : PishockException
+{
+    public PishockNotSupportedException() { }
+    public PishockNotSupportedException(string message) : base(message) { }
+    public PishockNotSupportedException(string message, Exception innerException) : base(message, innerException) { }
+}

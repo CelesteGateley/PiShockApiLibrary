@@ -155,6 +155,12 @@ public class V3Shocker : IShocker
         await Activate(2, duration, 0, minimumDuration, 0);
     }
 
+    public Task Refresh()
+    {
+        // Realistic No-Op. Everything is validated properly locally, so cannot
+        return Task.CompletedTask;
+    }
+
     private async Task InitializeShockerDetails()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "https://api.pishock.com/Shockers/" + _shockerId);

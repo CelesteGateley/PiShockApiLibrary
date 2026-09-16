@@ -171,7 +171,7 @@ public class LegacyShocker : IShocker
         var request = new HttpRequestMessage(HttpMethod.Post, "https://ps.pishock.com/PiShock/Operate");
         request.Content = JsonContent.Create(new OperateRequest(_apiKey, _username, _shareCode, mode, duration, intensity, _agent, randomize, _intensityAsPercentage));
         var response = await Client.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = JsonSerializer.Deserialize<string>(await response.Content.ReadAsStringAsync());
 
         switch (content)
         {
